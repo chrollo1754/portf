@@ -669,8 +669,8 @@
           <select name="service"><option value="" disabled selected>Pick a service...</option><option>Custom Website</option><option>Landing Page</option><option>Business Website</option><option>Portfolio Website</option><option>Speed / Optimization</option><option>Something Else</option></select>
         </div>
         <div class="form-group">
-          <label>Your Budget (INR)</label>
-          <select name="budget"><option value="" disabled selected>What's your budget?</option><option>Under ₹10,000</option><option>₹10,000 – ₹30,000</option><option>₹30,000 – ₹75,000</option><option>₹75,000 – ₹1,50,000</option><option>₹1,50,000+</option></select>
+          <label id="budgetLabel">Your Budget</label>
+          <select name="budget" id="budgetSelect"><option value="" disabled selected>Detecting your currency...</option></select>
         </div>
         <div class="form-group"><label>Tell Me About It</label><textarea name="message" rows="5" placeholder="What are you building? What should the website do? Any details help..."></textarea></div>
         <button type="submit" class="form-submit" id="submitBtn">
@@ -948,6 +948,50 @@ const el = document.getElementById('emailDisplay');
 if (el) {
   el.innerHTML = '<a href="mailto:' + u + '@' + d + '" style="color:var(--cream-dim);text-decoration:none;">' + u + '@' + d + '</a>';
 }
+
+/* ===== CURRENCY DETECTION ===== */
+const budgetRanges = {
+  INR: { label: 'Your Budget (INR)', symbol: '₹', ranges: ['Under ₹10,000', '₹10,000 – ₹30,000', '₹30,000 – ₹75,000', '₹75,000 – ₹1,50,000', '₹1,50,000+'] },
+  USD: { label: 'Your Budget (USD)', symbol: '$', ranges: ['Under $200', '$200 – $500', '$500 – $1,500', '$1,500 – $3,000', '$3,000+'] },
+  GBP: { label: 'Your Budget (GBP)', symbol: '£', ranges: ['Under £150', '£150 – £400', '£400 – £1,200', '£1,200 – £2,500', '£2,500+'] },
+  EUR: { label: 'Your Budget (EUR)', symbol: '€', ranges: ['Under €200', '€200 – €500', '€500 – €1,500', '€1,500 – €3,000', '€3,000+'] },
+  AED: { label: 'Your Budget (AED)', symbol: 'AED', ranges: ['Under AED 700', 'AED 700 – AED 2,000', 'AED 2,000 – AED 5,500', 'AED 5,500 – AED 11,000', 'AED 11,000+'] },
+  AUD: { label: 'Your Budget (AUD)', symbol: 'A$', ranges: ['Under A$300', 'A$300 – A$800', 'A$800 – A$2,000', 'A$2,000 – A$4,500', 'A$4,500+'] },
+  CAD: { label: 'Your Budget (CAD)', symbol: 'C$', ranges: ['Under C$250', 'C$250 – C$700', 'C$700 – C$2,000', 'C$2,000 – C$4,000', 'C$4,000+'] },
+  SGD: { label: 'Your Budget (SGD)', symbol: 'S$', ranges: ['Under S$250', 'S$250 – S$700', 'S$700 – S$2,000', 'S$2,000 – S$4,000', 'S$4,000+'] },
+};
+
+const countryToCurrency = {
+  IN: 'INR', US: 'USD', GB: 'GBP', AU: 'AUD', CA: 'CAD', SG: 'SGD',
+  AE: 'AED', DE: 'EUR', FR: 'EUR', IT: 'EUR', ES: 'EUR', NL: 'EUR',
+  BE: 'EUR', AT: 'EUR', PT: 'EUR', IE: 'EUR', FI: 'EUR', GR: 'EUR',
+  PK: 'USD', BD: 'USD', LK: 'USD', NP: 'USD', PH: 'USD', NG: 'USD',
+  ZA: 'USD', KE: 'USD', GH: 'USD', NZ: 'USD', MY: 'USD', ID: 'USD',
+};
+
+function populateBudget(currency) {
+  const data = budgetRanges[currency] || budgetRanges['USD'];
+  const select = document.getElementById('budgetSelect');
+  const label = document.getElementById('budgetLabel');
+  if (!select) return;
+  label.textContent = data.label;
+  select.innerHTML = '<option value="" disabled selected>What\'s your budget?</option>';
+  data.ranges.forEach(range => {
+    const opt = document.createElement('option');
+    opt.textContent = range;
+    opt.value = range;
+    select.appendChild(opt);
+  });
+}
+
+// Detect country via free IP geolocation API
+fetch('https://ipapi.co/json/')
+  .then(r => r.json())
+  .then(data => {
+    const currency = countryToCurrency[data.country_code] || 'USD';
+    populateBudget(currency);
+  })
+  .catch(() => populateBudget('INR')); // fallback to INR if API fails
 
 /* ===== HERO PARALLAX DISABLED - prevents opacity bugs ===== */
 </script>
